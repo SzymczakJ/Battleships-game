@@ -1,11 +1,12 @@
 package game;
 
+import game.enums.ShootDirection;
+
 import java.util.Stack;
 
 public class ShipFocuser {
     private final Battlefield battlefield;
     private final ComputerPlayer computerPlayer;
-    Stack<Vector2d> positionsToCheck = new Stack<>();
 
     public ShipFocuser(Battlefield battlefield, ComputerPlayer computerPlayer) {
         this.battlefield = battlefield;
@@ -13,31 +14,58 @@ public class ShipFocuser {
     }
 
     public void focusOnShip(Vector2d position) {
-        positionsToCheck.push(position);
-        Vector2d currentPosition;
-        while (!positionsToCheck.isEmpty()) {
-            currentPosition = positionsToCheck.pop();
-            checkPositionsAroundPosition(currentPosition);
+        ShootDirection shootDirection = findWhereToShoot(position);
+        if (battlefield.shipWasSunk(position)) {
+            battlefield.cleanUpTheWreck(position);
+        }
+        else {
+            shootInLine(position, shootDirection);
+            shootDirection = shootDirection.oppositeDirection();
+            shootInLine(position, shootDirection);
+            battlefield.cleanUpTheWreck(position);
         }
     }
 
-    public void checkPositionsAroundPosition(Vector2d position) {
-        sortOutPosition(new Vector2d(position.xCoordinate - 1, position.yCoordinate));
-        sortOutPosition(new Vector2d(position.xCoordinate - 1, position.yCoordinate + 1));
-        sortOutPosition(new Vector2d(position.xCoordinate, position.yCoordinate + 1));
-        sortOutPosition(new Vector2d(position.xCoordinate + 1, position.yCoordinate + 1));
-        sortOutPosition(new Vector2d(position.xCoordinate + 1, position.yCoordinate));
-        sortOutPosition(new Vector2d(position.xCoordinate + 1, position.yCoordinate - 1));
-        sortOutPosition(new Vector2d(position.xCoordinate, position.yCoordinate - 1));
-        sortOutPosition(new Vector2d(position.xCoordinate - 1, position.yCoordinate - 1));
+    private ShootDirection findWhereToShoot(Vector2d position) {
+        Vector2d newPosition = new Vector2d(position.xCoordinate - 1, position.yCoordinate);
+        sortOutPosition(newPosition);
+        if (battlefield.isViableHitPosition(newPosition)) {
+            return ShootDirection.UP;
+        }
+        newPosition = new Vector2d(position.xCoordinate, position.yCoordinate + 1);
+        sortOutPosition(newPosition);
+        if (battlefield.isViableHitPosition(newPosition)) {
+            return ShootDirection.RIGHT;
+        }
+        newPosition = new Vector2d(position.xCoordinate + 1, position.yCoordinate);
+        sortOutPosition(newPosition);
+        if (battlefield.isViableHitPosition(newPosition)) {
+            return ShootDirection.DOWN;
+        }
+        newPosition = new Vector2d(position.xCoordinate, position.yCoordinate - 1);
+        sortOutPosition(newPosition);
+        return ShootDirection.LEFT;
+    }
+
+    private void shootInLine(Vector2d position, ShootDirection shootDirection) {
+        Vector2d newPosition = shootDirection.shootInDirection(position);
+        while (!battlefield.shipWasSunk(newPosition) && battlefield.isViableHitPosition(newPosition) && battlefield.positionInBounds(newPosition) && !battlefield.positionIsEmpty(newPosition)) {
+            sortOutPosition(newPosition);
+            newPosition = shootDirection.shootInDirection(newPosition);
+        }
+        if (battlefield.positionIsEmpty(newPosition) && !battlefield.shipWasSunk(newPosition)) {
+            sortOutPosition(newPosition);
+        }
     }
 
     public void sortOutPosition(Vector2d position) {
-        if (battlefield.positionIsEmpty(position)) battlefield.putEmptyPositionOnBattlefield(position);
+        if (battlefield.positionIsEmpty(position)) {
+            computerPlayer.addPositionToHit(position);
+            battlefield.putEmptyPositionOnBattlefield(position);
+        }
         else if (battlefield.positionIsNotChecked(position)) {
             battlefield.makePositionChecked(position);
             computerPlayer.addPositionToHit(position);
-            positionsToCheck.push(position);
         }
     }
 }

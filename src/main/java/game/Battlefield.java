@@ -78,7 +78,7 @@ public class Battlefield {
     }
 
     public void positionGotHit(Vector2d position) {
-        if (battlefieldPositions.get(position) == null)
+        if (battlefieldPositions.get(position) == null || battlefieldPositions.get(position).getPositionType() == PositionType.EMPTY)
             battlefieldPositions.put(position, new BattlefieldPosition(position, 0, PositionType.ALREADYHITEMPTY));
         else battlefieldPositions.get(position).shipAtPositionWasHit();
     }
@@ -97,7 +97,9 @@ public class Battlefield {
 
     public void makePositionChecked(Vector2d position) {
         if (battlefieldPositions.get(position) != null) {
-            battlefieldPositions.get(position).switchPositionType(PositionType.CHECKED);
+            if (battlefieldPositions.get(position).getPositionType() == PositionType.NOTCHECKED) {
+                battlefieldPositions.get(position).switchPositionType(PositionType.CHECKED);
+            }
         }
     }
 
@@ -171,5 +173,47 @@ public class Battlefield {
             nextPosition = hornyShipsInRightVincinity(nextPosition);
         }
         return true;
+    }
+
+    public void cleanUpTheWreck(Vector2d position) {
+        if (!shipWasSunk(position)) return;
+        Vector2d nextPosition = hornyShipsInLeftVincinity(position);
+        while (nextPosition != null) {
+            cleanAroundPosition(nextPosition);
+            nextPosition = hornyShipsInLeftVincinity(nextPosition);
+        }
+
+        nextPosition = hornyShipsInRightVincinity(position);
+        while (nextPosition != null) {
+            cleanAroundPosition(nextPosition);
+            nextPosition = hornyShipsInRightVincinity(nextPosition);
+        }
+    }
+
+    public void cleanAroundPosition(Vector2d position) {
+        if (positionIsEmpty(new Vector2d(position.xCoordinate - 1, position.yCoordinate)) && positionInBounds(new Vector2d(position.xCoordinate - 1, position.yCoordinate))) {
+            putEmptyPositionOnBattlefield(new Vector2d(position.xCoordinate - 1, position.yCoordinate));
+        }
+        if (positionIsEmpty(new Vector2d(position.xCoordinate - 1, position.yCoordinate + 1)) && positionInBounds(new Vector2d(position.xCoordinate - 1, position.yCoordinate + 1))) {
+            putEmptyPositionOnBattlefield(new Vector2d(position.xCoordinate - 1, position.yCoordinate + 1));
+        }
+        if (positionIsEmpty(new Vector2d(position.xCoordinate, position.yCoordinate + 1)) && positionInBounds(new Vector2d(position.xCoordinate, position.yCoordinate + 1))) {
+            putEmptyPositionOnBattlefield(new Vector2d(position.xCoordinate, position.yCoordinate + 1));
+        }
+        if (positionIsEmpty(new Vector2d(position.xCoordinate + 1, position.yCoordinate + 1)) && positionInBounds(new Vector2d(position.xCoordinate, position.yCoordinate + 1))) {
+            putEmptyPositionOnBattlefield(new Vector2d(position.xCoordinate + 1, position.yCoordinate + 1));
+        }
+        if (positionIsEmpty(new Vector2d(position.xCoordinate + 1, position.yCoordinate)) && positionInBounds(new Vector2d(position.xCoordinate + 1, position.yCoordinate))) {
+            putEmptyPositionOnBattlefield(new Vector2d(position.xCoordinate + 1, position.yCoordinate));
+        }
+        if (positionIsEmpty(new Vector2d(position.xCoordinate + 1, position.yCoordinate - 1)) && positionInBounds(new Vector2d(position.xCoordinate + 1, position.yCoordinate - 1))) {
+            putEmptyPositionOnBattlefield(new Vector2d(position.xCoordinate + 1, position.yCoordinate - 1));
+        }
+        if (positionIsEmpty(new Vector2d(position.xCoordinate, position.yCoordinate - 1)) && positionInBounds(new Vector2d(position.xCoordinate, position.yCoordinate - 1))) {
+            putEmptyPositionOnBattlefield((new Vector2d(position.xCoordinate, position.yCoordinate - 1)));
+        }
+        if (positionIsEmpty(new Vector2d(position.xCoordinate - 1, position.yCoordinate - 1)) && positionInBounds(new Vector2d(position.xCoordinate - 1, position.yCoordinate - 1))) {
+            putEmptyPositionOnBattlefield((new Vector2d(position.xCoordinate - 1, position.yCoordinate - 1)));
+        }
     }
 }
