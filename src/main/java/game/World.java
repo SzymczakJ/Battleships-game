@@ -1,7 +1,6 @@
 package game;
 
-import game.enums.BattlefieldOrientation;
-import game.enums.PositionType;
+
 import game.gui.App;
 import javafx.application.Application;
 

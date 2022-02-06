@@ -31,6 +31,7 @@ public class App extends Application {
     private VBox[][] computerGridPaneContent;
     private VBox sinkingNotification = new VBox();
     private int sunkenShips = 0;
+    private boolean easyStrategy = false;
 
     private Battlefield playersBattlefield;
     private int maxMoves;
@@ -164,6 +165,12 @@ public class App extends Application {
 
         mainStartingScreenVBox.getChildren().add(gridPane[0]);
 
+        Button easyButton = new Button("easy mode");
+        easyButton.setOnAction(event -> {
+            easyStrategy = true;
+        });
+        mainStartingScreenVBox.getChildren().add(easyButton);
+
         Button startButton = new Button("Start game");
         startButton.setOnAction(event -> {
             startRealGame(mainStartingScreenVBox);
@@ -173,7 +180,7 @@ public class App extends Application {
 
     private void startRealGame(VBox mainStartingScreenVBox) {
         Battlefield computerBattlefield = new Battlefield(playersBattlefield.size);
-        computerPlayer = new ComputerPlayer(playersBattlefield, false);
+        computerPlayer = new ComputerPlayer(playersBattlefield, easyStrategy);
         computerPlayer.putShipsOnMap(computerBattlefield, quantityOfIronclads, quantityOfBattleCruisers, quantityOfDestroyers,
                 pointsPerIroncladHit, pointsPerBattleCruiserHit, pointsPerDestroyerHit);
         fillComputerGridPaneContent(playersBattlefield.size);

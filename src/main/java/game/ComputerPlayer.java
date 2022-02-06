@@ -5,10 +5,10 @@ import game.positionRandomer.RandomAllPositions;
 import game.positionRandomer.RandomBlackPositions;
 import game.positionRandomer.RandomWhitePositions;
 import game.positionRandomer.RandomizingStrategy;
-import javafx.stage.Stage;
 
-import java.util.Random;
-import java.util.Stack;
+import java.util.*;
+
+import javafx.stage.Stage;
 
 public class ComputerPlayer {
     private final Battlefield battlefield;
@@ -25,7 +25,6 @@ public class ComputerPlayer {
         else {
             Random random = new Random();
             int x = random.nextInt(2);
-            System.out.println(x);
             if (x == 1) positionRandomer = new RandomBlackPositions(battlefield);
             else positionRandomer = new RandomWhitePositions(battlefield);
         }
@@ -67,15 +66,26 @@ public class ComputerPlayer {
         }
         else {
             positionToHit = positionRandomer.randomPosition();
-            System.out.println(positionToHit);
+
             battlefield.positionGotHit(positionToHit);
             if (battlefield.positionIsShipUnit(positionToHit)) {
                 points += battlefield.pointsValueOnPosition(positionToHit);
                 shipFocuser.focusOnShip(positionToHit);
+                reverseDamnStack();
             }
         }
     }
 
+    private void reverseDamnStack() {
+        List<Vector2d> damnList = new ArrayList<>();
+        while (!positionsToHit.isEmpty()) {
+            damnList.add(positionsToHit.pop());
+        }
+
+        for (Vector2d position: damnList) {
+            positionsToHit.push(position);
+        }
+    }
 
     public void addPositionToHit(Vector2d position) {
         positionsToHit.push(position);
